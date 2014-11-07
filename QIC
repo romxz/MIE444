@@ -15,6 +15,33 @@ void initialize(){
   port_b_pullups(TRUE); // adds "pull up" capability to B. Not sure what this does
 }
 
+int pwmMotors(int motor, int direction, long int duty){ // two motors, 0 or 1, direction 0,1 for forward/backward, duty[0,1023]. Returns 0 for ok, 1 error
+  if (motor==0){ // first motor
+    if (direction==0){ // forward direction
+      output_low(pin_c3); // pin selected for motor 1 (unsure why c3 and low)
+      set_pwm1_duty(duty); // set duty
+    } elseif (direction==1){ //backward direction
+      output_high(pin_c3); // for backwards c3 needs high instead of low, unsure why
+      set_pwm1_duty(1023-duty); // duty seems to be reversed this way
+    } else { // error
+      return 1;
+    }
+  } elseif (motor==1){ //second motor
+    if (direction==0){ // forward direction
+      output_low(pin_c0); // pin selected for motor 2 (unsure why c0 and low)
+      set_pwm2_duty(duty); //set duty
+    } elseif (direction==1){ // backwards
+      output_high(pin_c0); // needs high instead of low, unsure why
+      set_pwm2_duty(1023-duty); // duty seems to reverse this way when backwards
+    } else { // error
+      return 1;
+    }
+  } else { //error
+    return 1;
+  }
+  return 0; // no errors
+}
+
 void main(){
   initialize();
 }
