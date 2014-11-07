@@ -1,0 +1,12 @@
+#include <q_config.h>
+#include <encoder.h>
+#include <init_qmt.h>
+#include <math.h>
+
+void initialize(){
+
+}
+
+void main(){
+  initialize();
+}
