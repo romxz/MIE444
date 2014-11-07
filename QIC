@@ -15,7 +15,8 @@ void initialize(){
   port_b_pullups(TRUE); // adds "pull up" capability to B. Not sure what this does
 }
 
-int pwmMotors(int motor, int direction, long int duty){ // two motors, 0 or 1, direction 0,1 for forward/backward, duty[0,1023]. Returns 0 for ok, 1 error
+int pwmMotors(int motor, int direction, long int duty){
+// two motors:0,1; direction forward/backward:0,1; duty[0,1023]. Return ok,error:0,1
   if (motor==0){ // first motor
     if (direction==0){ // forward direction
       output_low(pin_c3); // pin selected for motor 1 (unsure why c3 and low)
@@ -23,7 +24,7 @@ int pwmMotors(int motor, int direction, long int duty){ // two motors, 0 or 1, d
     } elseif (direction==1){ //backward direction
       output_high(pin_c3); // for backwards c3 needs high instead of low, unsure why
       set_pwm1_duty(1023-duty); // duty seems to be reversed this way
-    } else { // error
+    } else {
       return 1;
     }
   } elseif (motor==1){ //second motor
@@ -33,13 +34,43 @@ int pwmMotors(int motor, int direction, long int duty){ // two motors, 0 or 1, d
     } elseif (direction==1){ // backwards
       output_high(pin_c0); // needs high instead of low, unsure why
       set_pwm2_duty(1023-duty); // duty seems to reverse this way when backwards
-    } else { // error
+    } else {
       return 1;
     }
-  } else { //error
+  } else {
     return 1;
   }
-  return 0; // no errors
+  return 0;
+}
+
+int onoffMotors(int motor, int state, int direction){
+// two motors: 0,1; state off,on:0,1; direction forwards,backwards:0,1; Return ok,error:0,1
+  if (motor==0){ // select the pins corresponding to first or second motor
+    int left = pin_b4;
+    int right = pin_b5;
+  } elseif (motor==1){
+    int left = pin_b6;
+    int right = pin_b7;
+  } else {
+    return 1;
+  }
+  if (state==0){
+      output_low(left);
+      output_low(right);
+  } elseif (state==1){
+    if (direction==0){
+      output_low(left);
+      output_high(right); 
+    } elseif (direction==1){
+      output_low(right);
+      output_high(left);
+    } else {
+      return 1;
+    }
+  } else {
+    return 1;
+  }
+  return 0;
 }
 
 void main(){
