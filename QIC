@@ -75,4 +75,20 @@ int onoffMotors(int motor, int state, int direction){
 
 void main(){
   initialize();
+  
+  
 }
+
+/* Reading in a entire port (e.g. Port D)
+int prtb; // create an 8 bit (0-255) variable to store port information
+prtb=input_d(); // input port (each pin represent 1 bit in a binary number
+int a; // create a variable to store the bit or pin information
+a=bit_test(prtb,0); // return a 0 or 1 corresponding to the pin being high or low of Bit 0
+// e.g. if Pin D0 is connected to +5V the variable will equal 1 
+*/
+
+*/ Reading a pi (e.g Pin D0)
+int reading; // create an 8 bit variable to store pin information
+reading=input(pin_d0); // return a 0 or 1 corresponding to the pin being high or low
+*/
+
