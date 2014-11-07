@@ -4,7 +4,15 @@
 #include <math.h>
 
 void initialize(){
-
+  set_tris_b(0b00000000); // sets B to outputs. B0-B1 we want for Roller
+  set_tris_c(0b00000000); // sets C to outputs
+  set_tris_d(0b11111111); // sets D to inputs
+  setup_ccp1(CCP_PWM); // enables CCP1 to PWM mode
+  setup_ccp2(CCP_PWM); // enables CCP2 to PWM mode
+  setup_timer_2(T2_DIV_BY_1, 255, 1); // sets PWM frequency to 19.5kHz
+  setup_adc_ports(ALL_ANALOG); // sets A and E to analog readers to the output from the A/D converter
+  setup_adc(ADC_CLOCK_DIV_32); // sets A/D clock frequency
+  port_b_pullups(TRUE); // adds "pull up" capability to B. Not sure what this does
 }
 
 void main(){
