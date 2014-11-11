@@ -1,4 +1,4 @@
-int Pin0 = 10;
+int Pin0 = 10; // some numbers, to be changed later
 int Pin1 = 11; 
 int Pin2 = 12; 
 int Pin3 = 13; 
@@ -7,7 +7,7 @@ boolean dir = true; // gre
 
 void initialize() 
 { 
-  pinMode(Pin0, OUTPUT);  
+  pinMode(Pin0, OUTPUT);  // arduino set up language, needs to be changed to qic
   pinMode(Pin1, OUTPUT);  
   pinMode(Pin2, OUTPUT);  
   pinMode(Pin3, OUTPUT);  
@@ -70,19 +70,19 @@ void changeMotorStep(int step)
      digitalWrite(Pin2, LOW); 
      digitalWrite(Pin3, LOW); 
    break;  
- } 
- if(dir){ 
-   step++; 
- }else{ 
-   step--; 
- } 
- if(step>7){ 
-   step=0; 
- } 
- if(step<0){ 
+   } 
+  if(dir){ 
+    step++; 
+  }else{ 
+    step--; 
+  } 
+  if(step>7){ 
+    step=0; 
+  } 
+  if(step<0){ 
    step=7; 
- } 
- delay(1); 
+  } 
+  delay(1); 
 }
  
 void main() 
