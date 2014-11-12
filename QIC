@@ -15,7 +15,7 @@ void initialize(){
   port_b_pullups(TRUE); // adds "pull up" capability to B. Not sure what this does
 }
 
-int pwmMotors(int motor, int direction, long int duty){
+/*int pwmMotors(int motor, int direction, long int duty){
 // two motors:0,1; direction forward/backward:0,1; duty[0,1023]. Return ok,error:0,1
   if (motor==0){ // first motor
     if (direction==0){ // forward direction
@@ -24,9 +24,7 @@ int pwmMotors(int motor, int direction, long int duty){
     } elseif (direction==1){ //backward direction
       output_high(pin_c3); // for backwards c3 needs high instead of low, unsure why
       set_pwm1_duty(1023-duty); // duty seems to be reversed this way
-    } else {
-      return 1;
-    }
+    } else { return 1;}
   } elseif (motor==1){ //second motor
     if (direction==0){ // forward direction
       output_low(pin_c0); // pin selected for motor 2 (unsure why c0 and low)
@@ -34,16 +32,12 @@ int pwmMotors(int motor, int direction, long int duty){
     } elseif (direction==1){ // backwards
       output_high(pin_c0); // needs high instead of low, unsure why
       set_pwm2_duty(1023-duty); // duty seems to reverse this way when backwards
-    } else {
-      return 1;
-    }
-  } else {
-    return 1;
-  }
+    } else { return 1;}
+  } else { return 1;}
   return 0;
-}
+}*/
 
-int onoffMotors(int motor, int state, int direction){
+/*int onoffMotors(int motor, int state, int direction){
 // two motors: 0,1; state off,on:0,1; direction forwards,backwards:0,1; Return ok,error:0,1
   if (motor==0){ // select the pins corresponding to first or second motor
     int left = pin_b4;
@@ -51,9 +45,7 @@ int onoffMotors(int motor, int state, int direction){
   } elseif (motor==1){
     int left = pin_b6;
     int right = pin_b7;
-  } else {
-    return 1;
-  }
+  } else { return 1;}
   if (state==0){
       output_low(left);
       output_low(right);
@@ -64,19 +56,106 @@ int onoffMotors(int motor, int state, int direction){
     } elseif (direction==1){
       output_low(right);
       output_high(left);
-    } else {
-      return 1;
-    }
-  } else {
-    return 1;
+    } else { return 1;}
+  } else { return 1;}
+  return 0;
+}*/
+
+int flapControl(int flap, int dir){
+  int step = 0;
+  int Pin0 = PinStepA0;  // these values need to be changed to match motor's pins
+  int Pin1 = PinStepA1; 
+  int Pin2 = PinStepA2; 
+  int Pin3 = PinStepA3;
+  if (flap==0){
+    int flapSteps = 175; // Max number of steps forward of the stepper motor A. This number needs to be figured out
+    if (dir==1){
+      int step = flapSteps mod 7; // Last need to figure out correct syntax for this
+    } else { return 1;}
+  } elseif (flap==1){
+    Pin0 = PinStepB0; // these values need to be changed to match motor's pins
+    Pin1 = PinStepB1; 
+    Pin2 = PinStepB2; 
+    Pin3 = PinStepB3;
+    int flapSteps = 175; // Max number of steps forward of the stepper motor B. This number needs to be figured out
+    if (dir==1){
+      int step = flapSteps mod 7; // Last need to figure out correct syntax for this
+    } else { return 1;}
+  } else { return 1;}
+  int cycle = 0;
+  while (cycle<flapSteps){ // flapSteps needs to be calibrated
+    if (changeMotorStep(step, Pin0, Pin1, Pin2, Pin3)==1){ return 1;}
+    if (dir){ step--; // changes step according to the direction of increasing/decreasing direction
+    } else { step++;} 
+    if (step>7){ step=0;} // resets the step counter 
+    if (step<0){ step=7;} 
+    delay(3); // necessary to allow for stepper motor state to settle. NEED to change syntax for qic
+    cycle++;
   }
   return 0;
 }
 
+int changeMotorStep(int step, int Pin0, int Pin1, int Pin2, int Pin3){ // This function shifts the motor phase to the given step value
+  switch(step){ 
+    case 0: 
+      digitalWrite(Pin0, LOW); // this is in arduino. Need correct syntax for all of these pin state overrides  
+      digitalWrite(Pin1, LOW); 
+      digitalWrite(Pin2, LOW); 
+      digitalWrite(Pin3, HIGH); 
+      return 0;  
+    case 1: 
+      digitalWrite(Pin0, LOW);  
+      digitalWrite(Pin1, LOW); 
+      digitalWrite(Pin2, HIGH); 
+      digitalWrite(Pin3, HIGH); 
+      return 0;  
+    case 2: 
+      digitalWrite(Pin0, LOW);  
+      digitalWrite(Pin1, LOW); 
+      digitalWrite(Pin2, HIGH); 
+      digitalWrite(Pin3, LOW); 
+      return 0;  
+    case 3: 
+      digitalWrite(Pin0, LOW);  
+      digitalWrite(Pin1, HIGH); 
+      digitalWrite(Pin2, HIGH); 
+      digitalWrite(Pin3, LOW); 
+      return 0;
+    case 4: 
+      digitalWrite(Pin0, LOW);  
+      digitalWrite(Pin1, HIGH); 
+      digitalWrite(Pin2, LOW); 
+      digitalWrite(Pin3, LOW); 
+      return 0;
+    case 5: 
+      digitalWrite(Pin0, HIGH);  
+      digitalWrite(Pin1, HIGH); 
+      digitalWrite(Pin2, LOW); 
+      digitalWrite(Pin3, LOW); 
+      return 0;
+    case 6: 
+      digitalWrite(Pin0, HIGH);  
+      digitalWrite(Pin1, LOW); 
+      digitalWrite(Pin2, LOW); 
+      digitalWrite(Pin3, LOW); 
+      return 0;
+    case 7: 
+      digitalWrite(Pin0, HIGH);  
+      digitalWrite(Pin1, LOW); 
+      digitalWrite(Pin2, LOW); 
+      digitalWrite(Pin3, HIGH); 
+      return 0;
+    default: 
+      digitalWrite(Pin0, LOW);  
+      digitalWrite(Pin1, LOW); 
+      digitalWrite(Pin2, LOW); 
+      digitalWrite(Pin3, LOW); 
+      return 1;
+  }
+}
+
 void main(){
   initialize();
-  
-  
 }
 
 /* Reading in a entire port (e.g. Port D)
