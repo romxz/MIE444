@@ -9,11 +9,23 @@ int rColor=0; int bColor=0; int gColor=0; int yColor=0;
 int colorMissing = 3;
 // keeps track of the default colors. [0,1,2,3]=[R,G,B,Y]. Only three colors will be present, Y is taken out by default
 int color0=0; int color1=1; int color2=2;
+// need to set up the stepper motor pins, for steppers A and B
+int PinStepA0; int PinStepA1; int PinStepA2; int PinStepA3;
+int PinStepB0; int PinStepB1; int PinStepB2; int PinStepB3;
+
 
 void initialize(){
   set_tris_b(0b00000000); // sets B to outputs. B0-B1 we want for Roller
-  set_tris_c(0b00000000); // sets C to outputs
-  set_tris_d(0b11111111); // sets D to inputs
+  set_tris_c(0b00000000); // sets C to outputs.
+  set_tris_d(0b00000000); // sets D to outputs. Reserved for stepper motors
+  PinStepA0 = pin_d0; // dedicate D ports to stepper motors
+  PinStepA1 = pin_d1;
+  PinStepA2 = pin_d2;
+  PinStepA3 = pin_d3;
+  PinStepB0 = pin_d4;
+  PinStepB1 = pin_d5;
+  PinStepB2 = pin_d6;
+  PinStepB3 = pin_d7;
   setup_ccp1(CCP_PWM); // enables CCP1 to PWM mode
   setup_ccp2(CCP_PWM); // enables CCP2 to PWM mode
   setup_timer_2(T2_DIV_BY_1, 255, 1); // sets PWM frequency to 19.5kHz
@@ -107,9 +119,13 @@ int changeMotorStep(int step, int Pin0, int Pin1, int Pin2, int Pin3){
   switch(step){ 
     case 0: 
       digitalWrite(Pin0, LOW); // this is in arduino. Need correct syntax for all of these pin state overrides  
+      output_low(Pin0);
       digitalWrite(Pin1, LOW); 
+      output_low(Pin1);
       digitalWrite(Pin2, LOW); 
-      digitalWrite(Pin3, HIGH); 
+      output_low(Pin2);
+      digitalWrite(Pin3, HIGH);
+      output_high(Pin3);
       return 0;  
     case 1: 
       digitalWrite(Pin0, LOW);  
