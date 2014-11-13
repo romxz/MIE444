@@ -78,6 +78,7 @@ void initialize(){
   return 0;
 }*/
 
+// moves the [first,second] flap corresponding to flap=[0,1], in the direction [forward,backward] corresponding to dir=[0,1]
 int flapControl(int flap, int dir){
   int step = 0;
   int Pin0 = PinStepA0;  // these values need to be changed to match motor's pins
@@ -189,7 +190,7 @@ int determineColor(){ // needs to be implemented
 
 // does the logic for allowing only the 3 possible colors out of 4, without knowing which to include from the start
 // sets the top, middle and bottom trays to be the first three different colors that it finds. 
-// returns [0,1,2] for the top, middle, or bottom tray where the color needs to go. Returns -1 for error
+// returns [0,1,2] for the bottom, middle, or top tray where the color needs to go. Returns -1 for error
 int findTray(int color){ // needs to be completed
   int numberOfColors = colorRHere+colorGHere+colorBHere+colorYHere;  // counts how many colors have been detected
   if (numberOfColors<4){ 
@@ -210,24 +211,24 @@ int findTray(int color){ // needs to be completed
       	printf("error:findTray.unrecognizedDeterminedColor;");
         return -1;
     }
-  	// updates the number of colors after the current color is read
-  	numberOfColors = colorRHere+colorGHere+colorBHere+colorYHere;
+    // updates the number of colors after the current color is read
+    numberOfColors = colorRHere+colorGHere+colorBHere+colorYHere;
     // if the color is new, assigns it to an unassigned tray
     if ((numberOfColors==1)&(colorTop==-1)){ // first time a new color has been read
       colorTop = colorGHere+(colorBHere)*2+(colorYHere)*3; // assign the top to this first color
     } elseif ((numberOfColors==2)&(colorMid==-1)) { // second time a new color has been read
-      colorMid = colorGHere+(colorBHere)*2+(colorYHere)*3-colorTop; // assign the middle to this second color
+    	colorMid = colorGHere+(colorBHere)*2+(colorYHere)*3-colorTop; // assign the middle to this second color
     }	elseif ((numberOfColors==3)&(colorBot==-1)) { // third time a new color has been read
-			colorBot = colorGHere+(colorBHere)*2+(colorYHere)*3-colorTop-colorMid; // assign the bottom to this third color
+    	colorBot = colorGHere+(colorBHere)*2+(colorYHere)*3-colorTop-colorMid; // assign the bottom to this third color
     }
     // returns the tray corresponding to that color
     switch(color){
     	case colorTop:
-    		return 0;
+    		return 2;
     	case colorMid:
     		return 1;
     	case colorBot:
-    		return 2;
+    		return 0;
     	default:
     		printf("error:findTray.colorNotInTrays;");
     		return -1;
@@ -238,11 +239,13 @@ int findTray(int color){ // needs to be completed
   }
 }
 
-int nextPage(){ // calls the dc motor to advance one page. needs to be implemented
+// calls the dc motor to advance one page. needs to be implemented
+int nextPage(){ 
   return 0;
 }
 
-int resetFlap(){ // resets the flaps to the default state. needs to be implemented
+// resets the flaps to the default state. optional implementation, and might need some encoder or something
+int resetFlap(){ 
   return 0;
 }
 
@@ -254,28 +257,25 @@ void main(){
   initialize();
   int lightThreshold = senseLight(); // function that is supposed to sense if there is a colored page via some threshold.
   int pageNumber=0; // page number counter
-  int color=determineColor(); // this value [0,1,2] stores the color read. 
-  int prevColor; // this is to track the previously activated flap
-  // try to reset the flaps to default position. optional for later implementation:
-  if (resetFlap()==1){ printf("error:main.resetFlap;");}
-  } else {
-    while (lightThreshold>100&pageNumber<100){
+  int color=-2; // this value [0,1,2] stores the color read. -1 means error, -2 means unassigned  
+  int prevFlap=2; // this is to track the previously activated flap. [0,1] representing [A,B] motor, 2 for both trays closed
+  if (resetFlap()==1){ printf("error:main.resetFlap;");} // try to reset the flaps to default position
+  } else { // starts the paper detecting/feeding/tray assignment loop
+    while (lightThreshold>100&pageNumber<100){ // loop while there are still pages left. light value need to be calibrated
       pageNumber++;
-      prevColor = color; // stores the value of the previous color
-      // asks sensor threshold function to provide one of the colors, as a value [0,1,2,3] representing [R,G,B,Y]. needs to be implemented
-      color = determineColor();
+      color = determineColor(); // asks sensor threshold function to provide one of the colors, as a value [0,1,2,3] representing [R,G,B,Y]
+      if (color<0){ printf("error:main.color.determineColorError;");} // checks if there is an error in determineColor()
       int tray = findTray(color); // gets a value of [0,1,2] representing which tray it needs to go to
-      if (color==-1){ printf("error:getColor;");} // checks there is no error in getColor()
-      if ((color!==prevColor)&(prevColor!==0)){ // checks if it needs to close the previously opened flap
-        if (flapControl(prevColor-1, 1)==1){ printf("error:main.flapControl.Close;");} // closes the prev. opened flap
+      if (tray==-1){ printf("error:main.findTrayReturnError");
+      } elseif ((tray!==prevFlap)&(prevFlap!==2)){ // checks if it needs to close the previously opened flap
+        if (flapControl(prevFlap, 1)==1){ printf("error:main.flapControl.Close;");} // tries to close the prev. opened flap
       }
-      if ((color==1)|(color==2)){ // checks to see if it needs to open a flap
-        if (flapControl(color-1, 0)==1){ printf("error:main.flapControl.Open;");} // opens the required flap
+      if ((tray==0)|(tray==1)){ // checks to see if it needs to open a flap
+        if (flapControl(tray, 0)==1){ printf("error:main.flapControl.Open;");} // tries to open the required flap
+        prevFlap = tray; // stores the current value of the opened flap
       } 
       // feeds the current page into the designated tray:
-      if ((-1<color)&(color<3)){ // checks for possible errors in the color range
-        if (nextPage()==1){ printf("error:nextPage;");} 
-      } else { printf("error:main.color[range];");}
+      if (nextPage()==1){ printf("error:main.nextPage;");}
     }
   }
   printf("completed");
