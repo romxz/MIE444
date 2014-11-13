@@ -188,12 +188,9 @@ int determineColor(){ // needs to be implemented
 
 
 // does the logic for allowing only the 3 possible colors out of 4, without knowing which to include from the start
-// and also calls the sensor to read the page's color
-// returns a value of [0,1,2] only, corresponding to the current existing color in the feeder tray. -1 return means error
-int getColor(){ // needs to be completed
+// sets the top, middle and bottom trays to be the first three different colors that it finds. Returns -1 for error
+int findTray(int color){ // needs to be completed
   int numberOfColors = colorRHere+colorGHere+colorBHere+colorYHere;  // counts how many colors have been detected
-  // asks sensor threshold function to provide one of the colors, as a value [0,1,2,3] representing [R,G,B,Y]. needs to be implemented
-  int color = determineColor();
   if (numberOfColors<4){
     if (numberOfColors<3){ // raises flag for any new colors found
       switch(color){
@@ -253,6 +250,8 @@ void main(){
     while (lightThreshold>100&pageNumber<100){
       pageNumber++;
       prevColor = color; // stores the value of the previous color
+      // asks sensor threshold function to provide one of the colors, as a value [0,1,2,3] representing [R,G,B,Y]. needs to be implemented
+      int color = determineColor();
       color = getColor(); // gets a value of [0,1,2] representing one of the colors in the set, from the sensor
       if (color==-1){ printf("error:getColor;");} // checks there is no error in getColor()
       if ((color!==prevColor)&(prevColor!==0)){ // checks if it needs to close the previously opened flap
