@@ -4,11 +4,9 @@
 #include <math.h>
 
 // keeps track of which colors have been detected. 0 means no, 1 means yes
-int colorRhere=0; int colorGhere=0; int colorBhere=0; int colorYhere=0;
-// need to keep track which color is not in the default set. Y is not in the default set by default 
-int colorNotHere = 3;
-// keeps track of the colors on the trays. [0,1,2,3]=[R,G,B,Y]. Only three colors will be present, Y is taken out by default
-int colorTop=0; int color=Mid; int colorBot=2;
+int colorRHere=0; int colorGHere=0; int colorBHere=0; int colorYHere=0;
+// keeps track of the colors on the trays. [0,1,2,3]=[R,G,B,Y]. -1 means unassigned, -2 means error
+int colorTop=-1; int colorMid=-1; int colorBot=-1;
 // need to set up the stepper motor pins, for steppers A and B
 int PinStepA0; int PinStepA1; int PinStepA2; int PinStepA3;
 int PinStepB0; int PinStepB1; int PinStepB2; int PinStepB3;
@@ -176,57 +174,6 @@ int changeMotorStep(int step, int Pin0, int Pin1, int Pin2, int Pin3){
   }
 }
 
-int getColor(){ // needs to be completed
-// does the logic for allowing only the 3 possible colors out of 4, without knowing which to include from the start
-// and also calls the sensor to read the page's color
-// returns a value of [0,1,2] only, corresponding to the existing colors in the paper tray.
-  int numberOfColors = rColor+bColor+gColor+yColor; // counts how many colors have been detected
-  int color = determineColor(); // asks sensor to provide one of the colors. needs to be implemented
-  if (numberOfColors<4){
-    switch(color){
-      case 0:
-        rColor=1;
-        break;
-      case 1:
-        gColor=1;
-        break;
-      case 2:
-        bColor=1;
-        break;
-      case 3:
-        yColor=1;
-        break;
-      default:
-        break;
-    }
-  }
-  if (numberOfColors==0){ // first time a new color is read
-    if (yColor==1){ // check if first color read is yellow
-      colorMissing=2; // put yellow back in the set, and let blue be the missing color instead
-      color2=3; // Switches Y with B in default set
-    }
-  } elseif (numberOfColors==1){ // second time a new color is read
-    if ((bColor==1)&(colorMissing==2)){ // check if second color read is blue and was removed from the set earlier
-      colorMissing=1; // put blue back in the set, and let green be the missing color instead, since first color detected was yellow
-      color1=3; // Switches Y with G in default
-      color2=2; // Puts B back in the set
-    } elseif ((yColor==1)&(colorMissing==3)){ // check if second color is yellow and missing from the set
-      // put yellow back in the set, and let an unused color be the missing color instead
-      if (bColor==0){
-        colorMissing=2;
-        color2=3; // Switches Y with B in default set
-      } else {
-        colorMissing=1;
-        color1=3; // Switches Y with G in default set
-      }
-    }
-  } elseif (numberOfColors==2) {
-    
-  
-  }
-  return color;
-}
-
 int determineColor(){ // needs to be implemented
 // function reads value from the sensor and designates a value for its output. Returns [0,1,2,3] corresponding to [R,G,B,Y]
   int threshold0=0; //threshold values for each color. Needs to be modified
@@ -239,6 +186,48 @@ int determineColor(){ // needs to be implemented
   return colorReading;
 }
 
+
+// does the logic for allowing only the 3 possible colors out of 4, without knowing which to include from the start
+// and also calls the sensor to read the page's color
+// returns a value of [0,1,2] only, corresponding to the current existing color in the feeder tray. -1 return means error
+int getColor(){ // needs to be completed
+  int numberOfColors = colorRHere+colorGHere+colorBHere+colorYHere;  // counts how many colors have been detected
+  // asks sensor threshold function to provide one of the colors, as a value [0,1,2,3] representing [R,G,B,Y]. needs to be implemented
+  int color = determineColor();
+  if (numberOfColors<4){
+    if (numberOfColors<3){ // raises flag for any new colors found
+      switch(color){
+        case 0:
+          colorRHere=1;
+          break;
+        case 1:
+          colorGHere=1;
+          break;
+        case 2:
+          colorBHere=1;
+          break;
+        case 3:
+          colorYHere=1;
+          break;
+        default:
+        	printf("error:getColor.unrecognizedDeterminedColor;");
+          return -1;
+      }
+    // updates the number of colors after the current color is read
+    numberOfColors = colorRHere+colorGHere+colorBHere+colorYHere;
+    if ((numberOfColors==1)&(colorTop==-1)){ // first time a new color has been read
+      colorTop = colorGHere+(colorBHere)*2+(colorYHere)*3; // assign the top to this first color
+    } elseif ((numberOfColors==2)&(colorMid==-1)) { // second time a new color has been read
+      colorMid = colorGHere+(colorBHere)*2+(colorYHere)*3-colorTop; // assign the middle to this second color
+    } elseif ((numberOfColors==3)&(colorBot==-1)) { // third time a new color has been read
+			colorBot = colorGHere+(colorBHere)*2+(colorYHere)*3-colorTop-colorMid; // assign the bottom to this third color
+    }
+  } else {
+  	pintf("error:getColor.numberofColors>4;");
+    return -1;
+  }
+  return color;
+}
 
 int nextPage(){ // calls the dc motor to advance one page. needs to be implemented
   return 0;
@@ -258,23 +247,24 @@ void main(){
   int pageNumber=0; // page number counter
   int color=0; // this value [0,1,2] stores the color read. 
   int prevColor; // this is to track the previously activated flap
-  // this value [0,1,2,3] is to keep track of how many different colors have been detected so far
-  int numberOfColors = colorRhere+colorGhere+colorBhere+colorYhere; 
-  if (resetFlap()==1){ printf("error");}
+  // try to reset the flaps to default position. optional for later implementation:
+  if (resetFlap()==1){ printf("error:main.resetFlap;");}
   } else {
     while (lightThreshold>100&pageNumber<100){
       pageNumber++;
       prevColor = color; // stores the value of the previous color
       color = getColor(); // gets a value of [0,1,2] representing one of the colors in the set, from the sensor
+      if (color==-1){ printf("error:getColor;");} // checks there is no error in getColor()
       if ((color!==prevColor)&(prevColor!==0)){ // checks if it needs to close the previously opened flap
-        if (flapControl(prevColor-1, 1)==1){ printf("error");} // closes the prev. opened flap
+        if (flapControl(prevColor-1, 1)==1){ printf("error:main.flapControl.Close;");} // closes the prev. opened flap
       }
-      if ((color==1)||(color==2)){ // checks to see if it needs to open a flap
-        if (flapControl(color-1, 0)==1){ printf("error");} // opens the required flap
+      if ((color==1)|(color==2)){ // checks to see if it needs to open a flap
+        if (flapControl(color-1, 0)==1){ printf("error:main.flapControl.Open;");} // opens the required flap
       } 
+      // feeds the current page into the designated tray:
       if ((-1<color)&(color<3)){ // checks for possible errors in the color range
-        if (nextPage()==1){ printf("error");} // feeds the current page into the designated tray 
-      } else { printf("error");}
+        if (nextPage()==1){ printf("error:nextPage;");} 
+      } else { printf("error:main.color[range];");}
     }
   }
   printf("completed");
