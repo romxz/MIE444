@@ -180,7 +180,7 @@ int determineColor(){ // needs to be implemented
   int threshold1=0;
   int threshold2=0;
   int threshold3=0;
-  long int colorReading=0;
+  int colorReading=0;
   // colorReading = readPin(X); // reads the sensor pin. X is the sensor input pin. needs to be modified, with correct type too
   // logic for deciding color based on threshold needs to go here. Specific to the sensor
   return colorReading;
@@ -188,42 +188,54 @@ int determineColor(){ // needs to be implemented
 
 
 // does the logic for allowing only the 3 possible colors out of 4, without knowing which to include from the start
-// sets the top, middle and bottom trays to be the first three different colors that it finds. Returns -1 for error
+// sets the top, middle and bottom trays to be the first three different colors that it finds. 
+// returns [0,1,2] for the top, middle, or bottom tray where the color needs to go. Returns -1 for error
 int findTray(int color){ // needs to be completed
   int numberOfColors = colorRHere+colorGHere+colorBHere+colorYHere;  // counts how many colors have been detected
-  if (numberOfColors<4){
-    if (numberOfColors<3){ // raises flag for any new colors found
-      switch(color){
-        case 0:
-          colorRHere=1;
-          break;
-        case 1:
-          colorGHere=1;
-          break;
-        case 2:
-          colorBHere=1;
-          break;
-        case 3:
-          colorYHere=1;
-          break;
-        default:
-        	printf("error:getColor.unrecognizedDeterminedColor;");
-          return -1;
-      }
-    // updates the number of colors after the current color is read
-    numberOfColors = colorRHere+colorGHere+colorBHere+colorYHere;
+  if (numberOfColors<4){ 
+    switch(color){ // raises flag for any new colors found
+      case 0:
+        colorRHere=1;
+        break;
+      case 1:
+        colorGHere=1;
+        break;
+      case 2:
+        colorBHere=1;
+        break;
+      case 3:
+        colorYHere=1;
+        break;
+      default:
+      	printf("error:findTray.unrecognizedDeterminedColor;");
+        return -1;
+    }
+  	// updates the number of colors after the current color is read
+  	numberOfColors = colorRHere+colorGHere+colorBHere+colorYHere;
+    // if the color is new, assigns it to an unassigned tray
     if ((numberOfColors==1)&(colorTop==-1)){ // first time a new color has been read
       colorTop = colorGHere+(colorBHere)*2+(colorYHere)*3; // assign the top to this first color
     } elseif ((numberOfColors==2)&(colorMid==-1)) { // second time a new color has been read
       colorMid = colorGHere+(colorBHere)*2+(colorYHere)*3-colorTop; // assign the middle to this second color
-    } elseif ((numberOfColors==3)&(colorBot==-1)) { // third time a new color has been read
+    }	elseif ((numberOfColors==3)&(colorBot==-1)) { // third time a new color has been read
 			colorBot = colorGHere+(colorBHere)*2+(colorYHere)*3-colorTop-colorMid; // assign the bottom to this third color
     }
+    // returns the tray corresponding to that color
+    switch(color){
+    	case colorTop:
+    		return 0;
+    	case colorMid:
+    		return 1;
+    	case colorBot:
+    		return 2;
+    	default:
+    		printf("error:findTray.colorNotInTrays;");
+    		return -1;
+    }
   } else {
-  	pintf("error:getColor.numberofColors>4;");
+  	pintf("error:getColor.numberofColors>3;");
     return -1;
   }
-  return color;
 }
 
 int nextPage(){ // calls the dc motor to advance one page. needs to be implemented
@@ -242,7 +254,7 @@ void main(){
   initialize();
   int lightThreshold = senseLight(); // function that is supposed to sense if there is a colored page via some threshold.
   int pageNumber=0; // page number counter
-  int color=0; // this value [0,1,2] stores the color read. 
+  int color=determineColor(); // this value [0,1,2] stores the color read. 
   int prevColor; // this is to track the previously activated flap
   // try to reset the flaps to default position. optional for later implementation:
   if (resetFlap()==1){ printf("error:main.resetFlap;");}
@@ -251,8 +263,8 @@ void main(){
       pageNumber++;
       prevColor = color; // stores the value of the previous color
       // asks sensor threshold function to provide one of the colors, as a value [0,1,2,3] representing [R,G,B,Y]. needs to be implemented
-      int color = determineColor();
-      color = getColor(); // gets a value of [0,1,2] representing one of the colors in the set, from the sensor
+      color = determineColor();
+      int tray = findTray(color); // gets a value of [0,1,2] representing which tray it needs to go to
       if (color==-1){ printf("error:getColor;");} // checks there is no error in getColor()
       if ((color!==prevColor)&(prevColor!==0)){ // checks if it needs to close the previously opened flap
         if (flapControl(prevColor-1, 1)==1){ printf("error:main.flapControl.Close;");} // closes the prev. opened flap
