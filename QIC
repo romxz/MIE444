@@ -4,11 +4,11 @@
 #include <math.h>
 
 // keeps track of which colors have been detected. 0 means no, 1 means yes
-int rColor=0; int bColor=0; int gColor=0; int yColor=0;
+int colorRhere=0; int colorGhere=0; int colorBhere=0; int colorYhere=0;
 // need to keep track which color is not in the default set. Y is not in the default set by default 
-int colorMissing = 3;
-// keeps track of the default colors. [0,1,2,3]=[R,G,B,Y]. Only three colors will be present, Y is taken out by default
-int color0=0; int color1=1; int color2=2;
+int colorNotHere = 3;
+// keeps track of the colors on the trays. [0,1,2,3]=[R,G,B,Y]. Only three colors will be present, Y is taken out by default
+int colorTop=0; int color=Mid; int colorBot=2;
 // need to set up the stepper motor pins, for steppers A and B
 int PinStepA0; int PinStepA1; int PinStepA2; int PinStepA3;
 int PinStepB0; int PinStepB1; int PinStepB2; int PinStepB3;
@@ -258,14 +258,14 @@ void main(){
   int pageNumber=0; // page number counter
   int color=0; // this value [0,1,2] stores the color read. 
   int prevColor; // this is to track the previously activated flap
-  int numberOfColors = 0; // this value [0,1,2,3] is to keep track of how many different colors have been detected so far
+  // this value [0,1,2,3] is to keep track of how many different colors have been detected so far
+  int numberOfColors = colorRhere+colorGhere+colorBhere+colorYhere; 
   if (resetFlap()==1){ printf("error");}
   } else {
     while (lightThreshold>100&pageNumber<100){
       pageNumber++;
       prevColor = color; // stores the value of the previous color
       color = getColor(); // gets a value of [0,1,2] representing one of the colors in the set, from the sensor
-      if ((numberOfColors<2)&(color!==prevColor)){ numberOfColors++;} // maximum three colors, since there is three trays only
       if ((color!==prevColor)&(prevColor!==0)){ // checks if it needs to close the previously opened flap
         if (flapControl(prevColor-1, 1)==1){ printf("error");} // closes the prev. opened flap
       }
@@ -277,6 +277,7 @@ void main(){
       } else { printf("error");}
     }
   }
+  printf("completed");
 }
 
 /* Reading in a entire port (e.g. Port D)
