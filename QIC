@@ -56,8 +56,8 @@ void initialize(){
   return 0;
 }*/
 
-/*int onoffMotors(int motor, int state, int direction){
 // two motors: 0,1; state off,on:0,1; direction forwards,backwards:0,1; Return ok,error:0,1
+int onoffMotors(int motor, int state, int direction){
   if (motor==0){ // select the pins corresponding to first or second motor
     int left = pin_b4;
     int right = pin_b5;
@@ -78,7 +78,7 @@ void initialize(){
     } else { return 1;}
   } else { return 1;}
   return 0;
-}*/
+}
 
 // moves the [first,second] flap corresponding to flap=[0,1], in the direction [forward,backward] corresponding to dir=[0,1]
 // returns 0 for ok, 1 for error
