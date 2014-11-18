@@ -1,1 +1,231 @@
-s
+#include <qic.h>
+#include <qicextio.h>
+#include <math.h>
+
+// keeps track of which colors have been detected. 0 means no, 1 means yes
+int colorRHere=0; int colorGHere=0; int colorBHere=0; int colorYHere=0;
+// keeps track of the colors on the trays. [0,1,2,3]=[R,G,B,Y]. -1 means unassigned, -2 means error
+int colorTop=-1; int colorMid=-1; int colorBot=-1;
+// need to set up the stepper motor pins, for steppers A and B
+int PinStepA0; int PinStepA1; int PinStepA2; int PinStepA3;
+int PinStepB0; int PinStepB1; int PinStepB2; int PinStepB3;
+// need to know the number of steps taken for each stepper motor to go forward. Need to calibrate these values
+int flapStepsA = 175; int flapStepsB = 175
+
+
+void initialize(){
+  set_tris_d(0b00000000); // sets D to outputs. Reserved for stepper motors
+  PinStepA0 = pin_d0; // dedicate D ports to stepper motors
+  PinStepA1 = pin_d1;
+  PinStepA2 = pin_d2;
+  PinStepA3 = pin_d3;
+  PinStepB0 = pin_d4;
+  PinStepB1 = pin_d5;
+  PinStepB2 = pin_d6;
+  PinStepB3 = pin_d7;
+}
+
+
+// moves the [first,second] flap corresponding to flap=[0,1], in the direction [forward,backward] corresponding to dir=[0,1]
+// returns 0 for ok, 1 for error
+int flapControl(int flap, int dir){
+  int step = 0;
+  int pinStep0 = PinStepA0; // matches pins to motor A
+  int pinStep1 = PinStepA1; 
+  int pinStep2 = PinStepA2; 
+  int pinStep3 = PinStepA3;
+  if (flap==0){
+    int flapSteps = flapStepsA; // Max number of steps forward of the stepper motor A. This number needs to be calibrated
+    if (dir==1){
+      int step = flapSteps mod 8; // Last need to figure out correct syntax for this. This is needed to keep track of the last open motor phase state
+    } elseif (dir!==0) { return 1;}
+  } elseif (flap==1){
+    pinStep0 = PinStepB0; // matches pins to motor B
+    pinStep1 = PinStepB1; 
+    pinStep2 = PinStepB2; 
+    pinStep3 = PinStepB3;
+    int flapSteps = flapStepsB; // Max number of steps forward of the stepper motor B. This number needs to be calibrated
+    if (dir==1){
+      int step = flapSteps mod 8; // Last need to figure out correct syntax for this
+    } elseif (dir!==0) { return 1;}
+  } else { return 1;}
+  int cycle = 0; // auxiliary counter variable
+  while (cycle<flapSteps){ // calls the step phase function a number of times equal to flapSteps
+    if (changeMotorStep(step, pinStep0, pinStep1, pinStep2, pinStep3)==1){ return 1;}
+    if (dir){ step--; // changes step according to the direction of increasing/decreasing direction
+    } else { step++;} 
+    if (step>7){ step=0;} // resets the step counter 
+    if (step<0){ step=7;} 
+    delay(3); // necessary to allow for stepper motor state to settle. NEED to change syntax for qic
+    cycle++;
+  }
+  return 0;
+}
+
+int changeMotorStep(int step, int pinStep0, int pinStep1, int pinStep2, int pinStep3){ 
+// This function shifts the motor phase to the given step value
+  switch(step){ 
+    case 0: 
+      output_low(pinStep0);
+      output_low(pinStep1);
+      output_low(pinStep2);
+      output_high(pinStep3);
+      return 0;  
+    case 1: 
+      output_low(pinStep0);
+      output_low(pinStep1);
+      output_high(pinStep2);
+      output_high(pinStep3);
+      return 0;  
+    case 2: 
+      output_low(pinStep0);
+      output_low(pinStep1);
+      output_high(pinStep2);
+      output_low(pinStep3);
+      return 0;  
+    case 3: 
+      output_low(pinStep0);
+      output_high(pinStep1);
+      output_high(pinStep2);
+      output_low(pinStep3);
+      return 0;
+    case 4: 
+      output_low(pinStep0);
+      output_high(pinStep1);
+      output_low(pinStep2);
+      output_low(pinStep3); 
+      return 0;
+    case 5: 
+      output_high(pinStep0);
+      output_high(pinStep1);
+      output_low(pinStep2);
+      output_low(pinStep3); 
+      return 0;
+    case 6: 
+      output_high(pinStep0);
+      output_low(pinStep1);
+      output_low(pinStep2);
+      output_low(pinStep3);
+      return 0;
+    case 7: 
+      output_high(pinStep0);
+      output_low(pinStep1);
+      output_low(pinStep2);
+      output_high(pinStep3);
+      return 0;
+    case 8: // this case is reserved for turning off the motor pins 
+      output_low(pinStep0);
+      output_low(pinStep1);
+      output_low(pinStep2);
+      output_low(pinStep3);
+      return 0;
+    default:
+      return 1;
+  }
+}
+
+int determineColor(){ // needs to be implemented
+// function reads value from the sensor and designates a value for its output. Returns [0,1,2,3] corresponding to [R,G,B,Y]
+  int threshold0=0; //threshold values for each color. Needs to be modified
+  int threshold1=0;
+  int threshold2=0;
+  int threshold3=0;
+  int colorReading=0;
+  // colorReading = readPin(X); // reads the sensor pin. X is the sensor input pin. needs to be modified, with correct type too
+  // logic for deciding color based on threshold needs to go here. Specific to the sensor
+  return colorReading;
+}
+
+
+// does the logic for allowing only the 3 possible colors out of 4, without knowing which to include from the start
+// sets the top, middle and bottom trays to be the first three different colors that it finds. 
+// returns [0,1,2] for the bottom, middle, or top tray where the color needs to go. Returns -1 for error
+int findTray(int color){ // needs to be completed
+  int numberOfColors = colorRHere+colorGHere+colorBHere+colorYHere;  // counts how many colors have been detected
+  if (numberOfColors<4){ 
+    switch(color){ // raises flag for any new colors found
+      case 0:
+        colorRHere=1;
+        break;
+      case 1:
+        colorGHere=1;
+        break;
+      case 2:
+        colorBHere=1;
+        break;
+      case 3:
+        colorYHere=1;
+        break;
+      default:
+      	printf("error:findTray.unrecognizedDeterminedColor;");
+        return -1;
+    }
+    // updates the number of colors after the current color is read
+    numberOfColors = colorRHere+colorGHere+colorBHere+colorYHere;
+    // if the color is new, assigns it to an unassigned tray
+    if ((numberOfColors==1)&(colorTop==-1)){ // first time a new color has been read
+      colorTop = colorGHere+(colorBHere)*2+(colorYHere)*3; // assign the top to this first color
+    } elseif ((numberOfColors==2)&(colorMid==-1)) { // second time a new color has been read
+  		colorMid = colorGHere+(colorBHere)*2+(colorYHere)*3-colorTop; // assign the middle to this second color
+    }	elseif ((numberOfColors==3)&(colorBot==-1)) { // third time a new color has been read
+  		colorBot = colorGHere+(colorBHere)*2+(colorYHere)*3-colorTop-colorMid; // assign the bottom to this third color
+    }
+    // returns the tray corresponding to that color
+    switch(color){
+    	case colorTop:
+    		return 2;
+    	case colorMid:
+    		return 1;
+    	case colorBot:
+    		return 0;
+    	default:
+    		printf("error:findTray.colorNotInTrays;");
+    		return -1;
+    }
+  } else {
+  	pintf("error:getColor.numberofColors>3;");
+    return -1;
+  }
+}
+
+// calls the dc motor to advance one page. needs to be implemented
+int nextPage(){ 
+  return 0;
+}
+
+// resets the flaps to the default state. optional implementation, and might need some encoder or something
+int resetFlap(){ 
+  return 0;
+}
+
+int senseLight(){ // senses a light threshold to see if there are any pages left. needs to be implemented
+  return 101; // value returned needs to be calibrated
+}
+
+void main(){
+  initialize();
+  int lightThreshold = senseLight(); // function that is supposed to sense if there is a colored page via some threshold.
+  int pageNumber=0; // page number counter
+  int color=-2; // this value [0,1,2] stores the color read. -1 means error, -2 means unassigned  
+  int prevFlap=2; // this is to track the previously activated flap. [0,1] representing [A,B] motor, 2 for both trays closed
+  if (resetFlap()==1){ printf("error:main.resetFlap;");} // try to reset the flaps to default position
+  } else { // starts the paper detecting/feeding/tray assignment loop
+    while (lightThreshold>100&pageNumber<100){ // loop while there are still pages left. light value need to be calibrated
+      pageNumber++;
+      color = determineColor(); // asks sensor threshold function to provide one of the colors, as a value [0,1,2,3] representing [R,G,B,Y]
+      if (color<0){ printf("error:main.color.determineColorError;");} // checks if there is an error in determineColor()
+      int tray = findTray(color); // gets a value of [0,1,2] representing which tray it needs to go to
+      if (tray==-1){ printf("error:main.findTrayReturnError");
+      } elseif ((tray!==prevFlap)&(prevFlap!==2)){ // checks if it needs to close the previously opened flap
+        if (flapControl(prevFlap, 1)==1){ printf("error:main.flapControl.Close;");} // tries to close the prev. opened flap
+      }
+      if ((tray==0)|(tray==1)){ // checks to see if it needs to open a flap
+        if (flapControl(tray, 0)==1){ printf("error:main.flapControl.Open;");} // tries to open the required flap
+        prevFlap = tray; // stores the current value of the opened flap
+      } 
+      // feeds the current page into the designated tray:
+      if (nextPage()==1){ printf("error:main.nextPage;");}
+    }
+  }
+  printf("completed");
+}
