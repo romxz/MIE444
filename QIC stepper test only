@@ -1,0 +1,83 @@
+#include <qic.h>
+#include <qicextio.h>
+#include <math.h>
+
+void initialize(){
+  set_tris_d(0b00000000); // sets D to outputs. Reserved for stepper motors
+}
+
+// This function shifts the motor phase to the given step value
+void changeMotorStep(int step, int pinStep0, int pinStep1, int pinStep2, int pinStep3){ 
+  switch(step){ 
+    case 0: 
+      output_low(pinStep0);
+      output_low(pinStep1);
+      output_low(pinStep2);
+      output_high(pinStep3);
+      return 0;  
+    case 1: 
+      output_low(pinStep0);
+      output_low(pinStep1);
+      output_high(pinStep2);
+      output_high(pinStep3);
+      return 0;  
+    case 2: 
+      output_low(pinStep0);
+      output_low(pinStep1);
+      output_high(pinStep2);
+      output_low(pinStep3);
+      return 0;  
+    case 3: 
+      output_low(pinStep0);
+      output_high(pinStep1);
+      output_high(pinStep2);
+      output_low(pinStep3);
+      return 0;
+    case 4: 
+      output_low(pinStep0);
+      output_high(pinStep1);
+      output_low(pinStep2);
+      output_low(pinStep3); 
+      return 0;
+    case 5: 
+      output_high(pinStep0);
+      output_high(pinStep1);
+      output_low(pinStep2);
+      output_low(pinStep3); 
+      return 0;
+    case 6: 
+      output_high(pinStep0);
+      output_low(pinStep1);
+      output_low(pinStep2);
+      output_low(pinStep3);
+      return 0;
+    case 7: 
+      output_high(pinStep0);
+      output_low(pinStep1);
+      output_low(pinStep2);
+      output_high(pinStep3);
+      return 0;
+    case 8: // this case is reserved for turning off the motor pins 
+      output_low(pinStep0);
+      output_low(pinStep1);
+      output_low(pinStep2);
+      output_low(pinStep3);
+      return 0;
+    default:
+      return 1;
+  }
+}
+
+
+void main(){
+  initialize();
+  int dir=0;
+  while (1){ // calls the step phase function a number of times equal to flapSteps
+    changeMotorStep(step, pin_d0, pin_d1, pin_d2, pin_d3);
+    if (dir){ step--; // changes step according to the direction of increasing/decreasing direction
+    } else { step++;} 
+    if (step>7){ step=0;} // resets the step counter 
+    if (step<0){ step=7;} 
+    delay(3); // necessary to allow for stepper motor state to settle. NEED to change syntax for qic
+  }  
+}
