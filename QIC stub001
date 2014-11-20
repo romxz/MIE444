@@ -1,0 +1,284 @@
+#include <qic.h>
+#include <qicextio.h>
+#include <math.h>
+
+// keeps track of which colors have been detected. 0 means no, 1 means yes
+int colorRHere=0; int colorGHere=0; int colorBHere=0; int colorYHere=0;
+// keeps track of the colors on the trays. [0,1,2,3]=[R,G,B,Y]. 255 means unassigned, 254 means error
+int colorTop=255; int colorMid=255; int colorBot=255;
+// need to set up the stepper motor pins, for steppers A and B
+//int PinStepA0; int PinStepA1; int PinStepA2; int PinStepA3;
+//int PinStepB0; int PinStepB1; int PinStepB2; int PinStepB3;
+// need to know the number of steps taken for each stepper motor to go forward. Need to calibrate these values
+int flapStepsA = 175; int flapStepsB = 175;
+
+void initialize(){
+	set_tris_b(0b00000000);
+	set_tris_d(0b00000000);
+	setup_timer_2(T2_DIV_BY_1, 255, 1);
+}
+
+
+void changeMotorStep(int step, int which){
+	//int reading;
+	if (which==0){
+		switch(step){
+   		case 1:
+				output_low(pin_d0);
+				delay_us(1);
+//				reading=input(pin_d4);
+//				printf("%u", reading);
+   			output_low(pin_d1);
+				delay_us(1);
+//				reading=input(pin_d5);
+//				printf("%u", reading);
+		   	output_low(pin_d2);
+				delay_us(1);
+//				reading=input(pin_d6);
+//				printf("%u", reading);
+   			output_high(pin_d3);
+				delay_us(1);
+//				reading=input(pin_d7);
+//				printf("%u", reading);
+				printf("-c1\n");
+				break;
+			case 2:
+   	   	output_low(pin_d0);
+				delay_us(1);
+//				reading=input(pin_d4);
+//				printf("%u", reading);
+	   	   output_low(pin_d1);
+				delay_us(1);
+//				reading=input(pin_d5);
+//				printf("%u", reading);
+   	   	output_high(pin_d2);
+				delay_us(1);
+//				reading=input(pin_d6);
+//				printf("%u", reading);
+	      	output_low(pin_d3);
+				delay_us(1);
+//				reading=input(pin_d7);
+//				printf("%u", reading);
+				printf("-c2\n");
+				break;
+			case 3:
+		   	output_low(pin_d0);
+				delay_us(1);
+//				reading=input(pin_d4);
+//				printf("%u", reading);
+      		output_high(pin_d1);
+				delay_us(1);
+//				reading=input(pin_d5);
+//				printf("%u", reading);
+	      	output_low(pin_d2);
+				delay_us(1);
+//				reading=input(pin_d6);
+//				printf("%u", reading);
+	   	   output_low(pin_d3);
+				delay_us(1);
+//				reading=input(pin_d7);
+//				printf("%u", reading);
+				printf("-c3\n");
+				break;
+			case 4:
+   		   output_high(pin_d0);
+				delay_us(1);
+//				reading=input(pin_d4);
+//				printf("%u", reading);
+	      	output_low(pin_d1);
+				delay_us(1);
+//				reading=input(pin_d5);
+//				printf("%u", reading);
+		      output_low(pin_d2);
+				delay_us(1);
+//				reading=input(pin_d6);
+//				printf("%u", reading);
+   		   output_low(pin_d3);
+				delay_us(1);
+//				reading=input(pin_d7);
+//				printf("%u", reading);
+				printf("-c4\n");
+				break;
+			default:
+				output_low(pin_d0);
+				delay_us(1);
+//				reading=input(pin_d4);
+//				printf("%u", reading);
+	      	output_low(pin_d1);
+				delay_us(1);
+//				reading=input(pin_d5);
+//				printf("%u", reading);
+		      output_low(pin_d2);
+				delay_us(1);
+//				reading=input(pin_d6);
+//				printf("%u", reading);
+   		   output_low(pin_d3);
+				delay_us(1);
+//				reading=input(pin_d7);
+//				printf("%u", reading);
+				printf("-coff\n");
+				//printf(" bad command ");
+				break;
+		}
+   } else if (which==1){
+		switch(step){
+   		case 1:
+				output_low(pin_d4);
+				delay_us(1);
+//				reading=input(pin_d4);
+//				printf("%u", reading);
+   			output_low(pin_d5);
+				delay_us(1);
+//				reading=input(pin_d5);
+//				printf("%u", reading);
+		   	output_low(pin_d6);
+				delay_us(1);
+//				reading=input(pin_d6);
+//				printf("%u", reading);
+   			output_high(pin_d7);
+				delay_us(1);
+//				reading=input(pin_d7);
+//				printf("%u", reading);
+				printf("-d1\n");
+				break;
+			case 2:
+   	   	output_low(pin_d4);
+				delay_us(1);
+//				reading=input(pin_d4);
+//				printf("%u", reading);
+	   	   output_low(pin_d5);
+				delay_us(1);
+//				reading=input(pin_d5);
+//				printf("%u", reading);
+   	   	output_high(pin_d6);
+				delay_us(1);
+//				reading=input(pin_d6);
+//				printf("%u", reading);
+	      	output_low(pin_d7);
+				delay_us(1);
+//				reading=input(pin_d7);
+//				printf("%u", reading);
+				printf("-d2\n");
+				break;
+			case 3:
+		   	output_low(pin_d4);
+				delay_us(1);
+//				reading=input(pin_d4);
+//				printf("%u", reading);
+      		output_high(pin_d5);
+				delay_us(1);
+//				reading=input(pin_d5);
+//				printf("%u", reading);
+	      	output_low(pin_d6);
+				delay_us(1);
+//				reading=input(pin_d6);
+//				printf("%u", reading);
+	   	   output_low(pin_d7);
+				delay_us(1);
+//				reading=input(pin_d7);
+//				printf("%u", reading);
+				printf("-d3\n");
+				break;
+			case 4:
+   		   output_high(pin_d4);
+				delay_us(1);
+//				reading=input(pin_d4);
+//				printf("%u", reading);
+	      	output_low(pin_d5);
+				delay_us(1);
+//				reading=input(pin_d5);
+//				printf("%u", reading);
+		      output_low(pin_d6);
+				delay_us(1);
+//				reading=input(pin_d6);
+//				printf("%u", reading);
+   		   output_low(pin_d7);
+				delay_us(1);
+//				reading=input(pin_d7);
+//				printf("%u", reading);
+				printf("-d4\n");
+				break;
+			default:
+				output_low(pin_d4);
+				delay_us(1);
+//				reading=input(pin_d4);
+//				printf("%u", reading);
+	      	output_low(pin_d5);
+				delay_us(1);
+//				reading=input(pin_d5);
+//				printf("%u", reading);
+		      output_low(pin_d6);
+				delay_us(1);
+//				reading=input(pin_d6);
+//				printf("%u", reading);
+   		   output_low(pin_d7);
+				delay_us(1);
+//				reading=input(pin_d7);
+//				printf("%u", reading);
+				printf("-doff\n");
+				//printf(" bad command ");
+				break;
+		}
+	}
+}
+
+int senseLight(){ // senses a light threshold to see if there are any pages left. needs to be implemented
+	return 101; // value returned needs to be calibrated
+}
+
+int determineColor(){ // needs to be implemented
+// function reads value from the sensor and designates a value for its output. Returns [0,1,2,3] corresponding to [R,G,B,Y]
+  int threshold0=0; //threshold values for each color. Needs to be modified
+  int threshold1=0;
+  int threshold2=0;
+  int threshold3=0;
+  int colorReading=0;
+  // colorReading = readPin(X); // reads the sensor pin. X is the sensor input pin. needs to be modified, with correct type too
+  // logic for deciding color based on threshold needs to go here. Specific to the sensor
+  return colorReading;
+}
+
+// does the logic for allowing only the 3 possible colors out of 4, without knowing which to include from the start
+// sets the top, middle and bottom trays to be the first three different colors that it finds.
+// returns [0,1,2] for the bottom, middle, or top tray where the color needs to go. Returns 255 for error
+int findTray(int color){ // needs to be completed
+	return 0;
+}
+
+// moves the [first,second] flap corresponding to flap=[0,1], in the direction [forward,backward] corresponding to dir=[0,1]
+// returns 0 for ok, 1 for error
+int flapControl(int flap, int dir){
+	return 0;
+}
+
+// calls the dc motor to advance one page. needs to be implemented. return 0 for ok, 1 for error
+int nextPage(){ 
+  return 0;
+}
+
+void main(){
+	int lightThreshold; // function that is supposed to sense if there is a colored page via some threshold.
+	int pageNumber=0; // page number counter
+	int color=254; // this value [0,1,2,3] stores the color read. 255 means error, 254 means unassigned
+	int prevFlap=2; // this is to track the previously activated flap. [0,1] representing [A,B] motor, 2 for both trays closed
+	int tray;
+	initialize();
+	lightThreshold = senseLight();
+	while ((lightThreshold>100)&&(pageNumber<100)){
+		pageNumber++;
+		color = determineColor();
+		if (color>3){ printf("error:main.color.determineColorError;");} // checks if there is an error in determineColor()
+		tray = findTray(color);	// gets a value of [0,1,2] representing which tray it needs to go to
+		if (tray==255){ printf("error:main.findTrayReturnError");
+		} else if ((tray!=prevFlap)&&(prevFlap!=2)){ // checks if it needs to close the previously opened flap
+        if (flapControl(prevFlap, 1)==1){ printf("error:main.flapControl.Close;");} // tries to close the prev. opened flap
+      }
+		if ((tray==0)|(tray==1)){ // checks to see if it needs to open a flap
+        if (flapControl(tray, 0)==1){ printf("error:main.flapControl.Open;");} // tries to open the required flap
+        prevFlap = tray; // stores the current value of the opened flap
+      } 
+		// feeds the current page into the designated tray:
+      if (nextPage()==1){ printf("error:main.nextPage;");}
+	}
+	printf("completed");
+}
