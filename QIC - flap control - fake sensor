@@ -13,6 +13,10 @@ int colorTop=255; int colorMid=255; int colorBot=255;
 int flapStepsA = 175; int flapStepsB = 175;
 //keep track of total number of colors
 int numberOfColors;
+// this is a useful "randomish" counter for the fake color feed. It will take values from 0, 1, 2 to represent color inputs
+int fake1=0;
+int fake2=0;
+int fake3=0;
 
 void initialize(){
 	set_tris_b(0b00000000);
@@ -44,7 +48,7 @@ void changeMotorStep(int step, int flap){
 				delay_us(1);
 //				reading=input(pin_d7);
 //				printf("%u", reading);
-				printf("-c1\n");
+				//printf("-c1\n");
 				break;
 			case 2:
    	   	output_low(pin_d0);
@@ -63,7 +67,7 @@ void changeMotorStep(int step, int flap){
 				delay_us(1);
 //				reading=input(pin_d7);
 //				printf("%u", reading);
-				printf("-c2\n");
+				//printf("-c2\n");
 				break;
 			case 3:
 		   	output_low(pin_d0);
@@ -82,7 +86,7 @@ void changeMotorStep(int step, int flap){
 				delay_us(1);
 //				reading=input(pin_d7);
 //				printf("%u", reading);
-				printf("-c3\n");
+				//printf("-c3\n");
 				break;
 			case 4:
    		   output_high(pin_d0);
@@ -101,7 +105,7 @@ void changeMotorStep(int step, int flap){
 				delay_us(1);
 //				reading=input(pin_d7);
 //				printf("%u", reading);
-				printf("-c4\n");
+				//printf("-c4\n");
 				break;
 			default:
 				output_low(pin_d0);
@@ -120,7 +124,7 @@ void changeMotorStep(int step, int flap){
 				delay_us(1);
 //				reading=input(pin_d7);
 //				printf("%u", reading);
-				printf("-coff\n");
+				//printf("-coff\n");
 				//printf(" bad command ");
 				break;
 		}
@@ -143,7 +147,7 @@ void changeMotorStep(int step, int flap){
 				delay_us(1);
 //				reading=input(pin_d7);
 //				printf("%u", reading);
-				printf("-d1\n");
+				//printf("-d1\n");
 				break;
 			case 2:
    	   	output_low(pin_d4);
@@ -162,7 +166,7 @@ void changeMotorStep(int step, int flap){
 				delay_us(1);
 //				reading=input(pin_d7);
 //				printf("%u", reading);
-				printf("-d2\n");
+				//printf("-d2\n");
 				break;
 			case 3:
 		   	output_low(pin_d4);
@@ -181,7 +185,7 @@ void changeMotorStep(int step, int flap){
 				delay_us(1);
 //				reading=input(pin_d7);
 //				printf("%u", reading);
-				printf("-d3\n");
+				//printf("-d3\n");
 				break;
 			case 4:
    		   output_high(pin_d4);
@@ -200,7 +204,7 @@ void changeMotorStep(int step, int flap){
 				delay_us(1);
 //				reading=input(pin_d7);
 //				printf("%u", reading);
-				printf("-d4\n");
+				//printf("-d4\n");
 				break;
 			default:
 				output_low(pin_d4);
@@ -219,7 +223,7 @@ void changeMotorStep(int step, int flap){
 				delay_us(1);
 //				reading=input(pin_d7);
 //				printf("%u", reading);
-				printf("-doff\n");
+				//printf("-doff\n");
 				//printf(" bad command ");
 				break;
 		}
@@ -232,31 +236,22 @@ int senseLight(){ // senses a light threshold to see if there are any pages left
 
 // function reads value from the sensor and designates a value for its output. Returns [0,1,2,3] corresponding to [R,G,B,Y]
 int determineColor(){ // needs to be implemented
-	long int resistor;
-	//float voltage;
-	while(1){
-		set_adc_channel(0);
-		delay_us(50);
-		resistor=read_adc();
-		//voltage=(resistor/1023.0)*5.0;
-		delay_ms(250);
-		if (resistor >= 110 && resistor <= 125 ){
-			printf("\nRead:Yellow,resistor:%lu\n;", resistor);
-			return 3; // yellow
-		} else if (resistor > 125 && resistor < 140 ){
-			printf("\nRead:Red,resistor:%lu\n;", resistor);
-			return 0; // red
-		} else if (resistor >= 140  && resistor <= 160){
-			printf("\nRead:Green,resistor:%lu\n;", resistor);
-			return 1; // green
-		} else if (resistor > 160){
-			printf("\nRead:Blue,resistor:%lu\n;", resistor);
-			return 2; // blue
-		} else {
-			//printf("\nRead:Error!!,resistor:%lu\n;", resistor);
-			return 255; // error
+	// We'll restrict ourselves to 0,1,2 for fake inputs
+	int fake;
+	fake = (2*fake1+5*fake2+7*fake3)%3;
+	fake1++;
+	if (fake1==0){
+		fake2++;
+		if (fake2==0){
+			fake3++;
 		}
 	}
+	fake1=fake1%3; fake2=fake2%3; fake3=fake3%3;
+	printf("%u", fake);
+	if (fake==0){
+		printf("");
+	}
+	return fake;
 }
 
 // does the logic for allowing only the 3 possible colors out of 4, without knowing which to include from the start
