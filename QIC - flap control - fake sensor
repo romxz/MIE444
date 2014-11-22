@@ -235,7 +235,7 @@ int senseLight(){ // senses a light threshold to see if there are any pages left
 }
 
 // function reads value from the sensor and designates a value for its output. Returns [0,1,2,3] corresponding to [R,G,B,Y]
-int determineColor(){ // needs to be implemented
+int determineFakeColor(){ // needs to be implemented
 	// We'll restrict ourselves to 0,1,2 for fake inputs
 	// The following generates a quick list of "pseudo-random" numbers in the desired range
 	int fake;
@@ -304,7 +304,7 @@ int findTray(int color){ // needs to be completed
 
 // moves the [first,second] flap corresponding to flap=[0,1], in the direction [forward,backward] corresponding to dir=[0,1]
 // returns 0 for ok, 1 for error
-void flapFakeControl(int flap, int dir){
+void flapControl(int flap, int dir){
 	int flapSteps;
 	int step = 1;
 	int cycle = 0; // auxiliary counter variable
