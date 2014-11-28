@@ -371,13 +371,13 @@ int nextPage(){
 }
 
 void main(){
-	//int lightThreshold; // function that is supposed to sense if there is a colored page via some threshold.
+	int lightThreshold; // function that is supposed to sense if there is a colored page via some threshold.
 	int color=254; // this value [0,1,2,3] stores the color read. 255 means error, 254 means unassigned
 	int prevFlap=2; // this is to track the previously activated flap. [0,1] representing [A,B] motor, 2 for both trays closed
 	int tray;
 	//int pageNumber=0; // page number counter
 	initialize();
-	//lightThreshold = senseLight();
+	lightThreshold = 101; // could be modified later for extra functionality
 	//while ((lightThreshold>100)&&(pageNumber<100)){
 	while (lightThreshold>100){
 		//pageNumber++;
