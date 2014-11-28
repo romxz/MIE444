@@ -352,7 +352,7 @@ void flapControl(int flap, int dir){
 		} else if (dir==0) { step++;}
 		if (step>4){ step=1;} // resets the step counter
 		if (step<1){ step=4;}
-		delay_us(1); // necessary to allow for stepper motor state to settle. NEED to change syntax for qic
+		delay_us(1); // necessary to allow for stepper motor state to settle
 		cycle++;
 	}
 }
