@@ -261,9 +261,9 @@ int determineFakeColor(){ // needs to be implemented
 	return fake;
 }
 
-// does the logic for allowing only the 3 possible colors out of 4, without knowing which to include from the start
+/* does the logic for allowing only the 3 possible colors out of 4, without knowing which to include from the start
 // sets the top, middle and bottom trays to be the first three different colors that it finds.
-// returns [0,1,2] for the bottom, middle, or top tray where the color needs to go. Returns 255 for error
+*/ returns [0,1,2] for the bottom, middle, or top tray where the color needs to go. Returns 255 for error
 int findTray(int color){ // needs to be completed
 	switch(color){ // raises flag for any new colors found
 		case 0:
