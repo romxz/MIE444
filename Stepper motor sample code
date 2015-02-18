@@ -1,11 +1,11 @@
-int Pin0 = 10; // some numbers, to be changed later
-int Pin1 = 11; 
-int Pin2 = 12; 
-int Pin3 = 13; 
+int Pin0 = 3; // some numbers, to be changed later
+int Pin1 = 4; 
+int Pin2 = 5; 
+int Pin3 = 6; 
 int step = 0; 
 boolean dir = true; // gre
 
-void initialize() 
+void setup() 
 { 
   pinMode(Pin0, OUTPUT);  // arduino set up language, needs to be changed to qic
   pinMode(Pin1, OUTPUT);  
@@ -13,7 +13,7 @@ void initialize()
   pinMode(Pin3, OUTPUT);  
 } 
 
-void changeMotorStep(int step)
+void loop()
 {
   switch(step){ 
    case 0: 
@@ -82,11 +82,5 @@ void changeMotorStep(int step)
   if(step<0){ 
    step=7; 
   } 
-  delay(1); 
+  delay(100); 
 }
- 
-void main() 
-{ 
-  initialize();
-}
-
